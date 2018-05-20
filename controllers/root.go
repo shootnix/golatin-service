@@ -2,36 +2,47 @@ package controllers
 
 import (
 	//"log"
-	"net/http"
 	"encoding/json"
+	"net/http"
 )
 
 type DecodeRequest struct {
-	String string `json:"string"`
+	String    string `json:"string"`
 	Algorithm string `json:"algorithm"`
-	ApiKey string `json:"api_key"`
+	ApiKey    string `json:"api_key"`
 }
 
 type DecodeResponse struct {
 	String string `json:"string"`
-	Error string `json:"error"`  // omitempty?
+	Error  string `json:"error"` // omitempty?
 }
 
-func POSTDecode (w http.ResponseWriter, r *http.Request) {
+func POSTDecode(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
 	decoder := json.NewDecoder(r.Body)
+	encoder := json.NewEncoder(w)
+
 	defer r.Body.Close()
 	var req DecodeRequest
-	var resp DecodeResponse
+	var res DecodeResponse
+
 	if err := decoder.Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		resp.Error = err.Error() 
+		res.Error = err.Error()
+		encoder.Encode(res)
 
-		json.NewEncoder(w).Encode(resp)
 		return
 	}
-	
 
-	resp.String = req.String
-	json.NewEncoder(w).Encode(resp)
+	if req.String == "" {
+		http.Error(w, "Empty string", http.StatusInternalServerError)
+		res.Error = "Empty string"
+		encoder.Encode(res)
+
+		return
+	}
+
+	res.String = req.String
+	encoder.Encode(res)
 }

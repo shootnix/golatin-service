@@ -1,22 +1,34 @@
-package daemon 
+package daemon
 
 import (
-	"net/http"
-	"log"
-	"github.com/shootnix/golatin-service/controllers"
 	"github.com/gorilla/mux"
+	"github.com/shootnix/golatin-service/config"
+	"github.com/shootnix/golatin-service/controllers"
+	"log"
+	"net/http"
 )
 
 type Daemon struct {
-	Addr string
+	Srv *http.Server
+}
+
+func NewDaemon(cfg config.DaemonConfig) *Daemon {
+	r := mux.NewRouter()
+
+	r.HandleFunc("/decode", controllers.POSTDecode).Methods("POST")
+
+	srv := &http.Server{
+		Handler: r,
+		Addr:    cfg.Address,
+	}
+
+	d := &Daemon{
+		Srv: srv,
+	}
+
+	return d
 }
 
 func (d *Daemon) Run() {
-	r := mux.NewRouter()
-	r.HandleFunc("/decode", controllers.POSTDecode).Methods("POST")
-	srv := http.Server{
-		Handler: r,
-		Addr: d.Addr,
-	}
-	log.Fatal(srv.ListenAndServe())
+	log.Fatal(d.Srv.ListenAndServe())
 }
