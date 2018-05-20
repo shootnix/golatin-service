@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/BurntSushi/toml"
 	"log"
 )
 
@@ -10,26 +11,20 @@ type Config struct {
 }
 
 type DatabaseConfig struct {
-	Address string
+	ConnectionInfo string `toml:"connection_info"`
 }
 
 type DaemonConfig struct {
-	Address string
+	Address string `toml:"address"`
 }
 
 func Load(filename string) *Config {
 	log.Println("Loading config `" + filename + "`")
 
-	cfg := &Config{
-
-		Database: DatabaseConfig{
-			Address: "foo",
-		},
-
-		Daemon: DaemonConfig{
-			Address: ":8080",
-		},
+	var cfg Config
+	if _, err := toml.DecodeFile(filename, &cfg); err != nil {
+		log.Fatal(err.Error())
 	}
 
-	return cfg
+	return &cfg
 }

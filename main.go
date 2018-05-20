@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/jmoiron/sqlx"
 	"github.com/shootnix/golatin-service/config"
 	"github.com/shootnix/golatin-service/daemon"
 	"github.com/shootnix/golatin-service/models"
@@ -19,12 +20,26 @@ func main() {
 
 	cfg := config.Load("config.toml")
 
-	models.InitStorage(cfg.Database)
+	db, err := OpenDatabaseConnection(cfg.Database)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	models.Pg = db
+
 	daemon := daemon.NewDaemon(cfg.Daemon)
 
 	log.Println("Starting...")
-	//daemon := daemon.Daemon{
-	//	Addr: ":8080",
-	//}
 	daemon.Run()
+}
+
+func OpenDatabaseConnection(cfg config.DatabaseConfig) (*sqlx.DB, error) {
+	db, err := sqlx.Open("postgres", cfg.ConnectionInfo)
+	if err != nil {
+		return db, err
+	}
+	if err = db.Ping(); err != nil {
+		return db, err
+	}
+
+	return db, err
 }

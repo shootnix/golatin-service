@@ -1,5 +1,10 @@
 create table api_users (
-	id serial,
-	api_key varchar(64) unique,
-	-- to be continued --
+	id                serial,
+	description       text not null default '',
+	api_key           varchar(64) unique,
+	total_requests    integer  not null default 0,
+	requests_allowed  integer  not null default 0,
+	requests_count    integer  not null default 0,
+	updated_at        timestamp not null default now(),
+	disabled          integer  not null default 0
 );

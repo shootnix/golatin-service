@@ -1,19 +1,22 @@
 package models
 
 import (
-	"github.com/shootnix/golatin-service/config"
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
+	//"github.com/shootnix/golatin-service/config"
+	//"log"
 )
 
-type Storage struct {
-	Connect string
-	Name    string
-}
+var Pg *sqlx.DB
 
-func InitStorage(cfg config.DatabaseConfig) *Storage {
-	s := &Storage{
-		Connect: cfg.Address,
-		Name:    "Default",
+/*
+func InitStorage(cfg config.DatabaseConfig) {
+	Pg, err := sqlx.Open("postgres", cfg.ConnectionInfo)
+	if err != nil {
+		log.Fatal(err)
 	}
-
-	return s
+	if err = Pg.Ping(); err != nil {
+		log.Fatal("ping error: ", err)
+	}
 }
+*/

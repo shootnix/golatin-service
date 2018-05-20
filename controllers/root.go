@@ -1,8 +1,9 @@
 package controllers
 
 import (
-	//"log"
 	"encoding/json"
+	"github.com/shootnix/golatin-service/models"
+	"log"
 	"net/http"
 )
 
@@ -17,7 +18,7 @@ type DecodeResponse struct {
 	Error  string `json:"error"` // omitempty?
 }
 
-func POSTDecode(w http.ResponseWriter, r *http.Request) {
+func POSTTranslit(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	decoder := json.NewDecoder(r.Body)
@@ -35,14 +36,73 @@ func POSTDecode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var err_msg string
 	if req.String == "" {
-		http.Error(w, "Empty string", http.StatusInternalServerError)
-		res.Error = "Empty string"
+		err_msg = "Empty string"
+		http.Error(w, err_msg, http.StatusInternalServerError)
+		res.Error = err_msg
 		encoder.Encode(res)
 
 		return
 	}
 
-	res.String = req.String
+	if req.ApiKey == "" {
+		err_msg = "Empty api_key"
+		http.Error(w, err_msg, http.StatusInternalServerError)
+		res.Error = err_msg
+		encoder.Encode(res)
+
+		return
+	}
+
+	apiUser, err := models.FindApiUser(req.ApiKey)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		res.Error = err.Error()
+		encoder.Encode(res)
+
+		return
+	}
+
+	log.Println("User with api_key `" + apiUser.ApiKey + "` found")
+	if apiUser.CheckDisabled() {
+		err_msg := "User is disabled"
+		http.Error(w, err_msg, http.StatusInternalServerError)
+		res.Error = err_msg
+		encoder.Encode(res)
+
+		return
+	}
+
+	if apiUser.CheckAllowedRequests() == 0 {
+		err_msg = "Requests for this user isn't allowed"
+		http.Error(w, err_msg, http.StatusInternalServerError)
+		res.Error = err_msg
+		encoder.Encode(res)
+
+		return
+	}
+
+	transliter := models.NewTransliter(req.Algorithm)
+	resultString, err := transliter.GoLatin(req.String)
+	if err != nil {
+		err_msg = err.Error()
+		http.Error(w, err_msg, http.StatusInternalServerError)
+		res.Error = err_msg
+		encoder.Encode(res)
+
+		return
+	}
+
+	if err = apiUser.RegisterRequest(); err != nil {
+		err_msg = err.Error()
+		http.Error(w, err_msg, http.StatusInternalServerError)
+		res.Error = err_msg
+		encoder.Encode(res)
+
+		return
+	}
+
+	res.String = resultString
 	encoder.Encode(res)
 }

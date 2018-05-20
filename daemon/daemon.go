@@ -15,7 +15,7 @@ type Daemon struct {
 func NewDaemon(cfg config.DaemonConfig) *Daemon {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/decode", controllers.POSTDecode).Methods("POST")
+	r.HandleFunc("/translit", controllers.POSTTranslit).Methods("POST")
 
 	srv := &http.Server{
 		Handler: r,
