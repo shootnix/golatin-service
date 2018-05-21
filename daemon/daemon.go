@@ -2,8 +2,8 @@ package daemon
 
 import (
 	"github.com/gorilla/mux"
-	"github.com/shootnix/golatin-service/config"
-	"github.com/shootnix/golatin-service/controllers"
+	"github.com/shootnix/golatin-transliter-service/config"
+	"github.com/shootnix/golatin-transliter-service/controllers"
 	"log"
 	"net/http"
 )

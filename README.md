@@ -1,1 +1,1 @@
-# golatin-service
+# golatin-transliter-service

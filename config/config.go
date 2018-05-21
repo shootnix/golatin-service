@@ -6,12 +6,7 @@ import (
 )
 
 type Config struct {
-	Database DatabaseConfig
-	Daemon   DaemonConfig
-}
-
-type DatabaseConfig struct {
-	ConnectionInfo string `toml:"connection_info"`
+	Daemon DaemonConfig
 }
 
 type DaemonConfig struct {

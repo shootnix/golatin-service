@@ -2,17 +2,17 @@ package controllers
 
 import (
 	"encoding/json"
-	"github.com/shootnix/golatin-service/models"
-	"log"
+	"errors"
+	"github.com/shootnix/golatin-transliter-service/models"
 	"net/http"
 )
 
-type DecodeRequest struct {
+type TranslitRequest struct {
 	String string `json:"string"`
-	Table  string `json:"algorithm"`
+	Table  string `json:"table"`
 }
 
-type DecodeResponse struct {
+type TranslitResponse struct {
 	String string `json:"string"`
 	Error  string `json:"error"` // omitempty?
 }
@@ -23,89 +23,93 @@ func POSTTranslit(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	encoder := json.NewEncoder(w)
 
+	l := models.NewLog()
+	l.Action = "translit"
+	l.Module = "transliter"
+	l.Result = "FAIL"
+
 	defer r.Body.Close()
-	var req DecodeRequest
-	var res DecodeResponse
+	var req TranslitRequest
+	var res TranslitResponse
 
 	if err := decoder.Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		res.Error = err.Error()
+
+		l.Description = err.Error()
+		go l.Save()
+
 		encoder.Encode(res)
 
 		return
 	}
 
-	var err_msg string
-	if req.String == "" {
-		err_msg = "Empty string"
-		http.Error(w, err_msg, http.StatusInternalServerError)
-		res.Error = err_msg
+	if err := req.Validate(); err != nil {
+		errmsg := err.Error()
+		http.Error(w, errmsg, http.StatusInternalServerError)
+		res.Error = errmsg
+
+		l.Description = errmsg
+		go l.Save()
+
 		encoder.Encode(res)
 
 		return
 	}
 
-	if req.Table == "" {
-		err_msg = "Empty table"
-		http.Error(w, err_msg, http.StatusInternalServerError)
-		res.Error = err_msg
-		encoder.Encode(res)
-
-		return
-	}
-
-	/*
-		apiUser, err := models.FindApiUser(req.ApiKey)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			res.Error = err.Error()
-			encoder.Encode(res)
-
-			return
-		}
-
-		log.Println("User with api_key `" + apiUser.ApiKey + "` found")
-		if apiUser.CheckDisabled() {
-			err_msg := "User is disabled"
-			http.Error(w, err_msg, http.StatusInternalServerError)
-			res.Error = err_msg
-			encoder.Encode(res)
-
-			return
-		}
-
-		if apiUser.CheckAllowedRequests() == 0 {
-			err_msg = "Requests for this user isn't allowed"
-			http.Error(w, err_msg, http.StatusInternalServerError)
-			res.Error = err_msg
-			encoder.Encode(res)
-
-			return
-		}
-	*/
-
-	transliter := models.NewTransliter(req.Table)
-	resultString, err := transliter.GoLatin(req.String)
+	t, err := models.NewTransliter(req.Table)
 	if err != nil {
-		err_msg = err.Error()
-		http.Error(w, err_msg, http.StatusInternalServerError)
-		res.Error = err_msg
+		errmsg := err.Error()
+		http.Error(w, errmsg, http.StatusInternalServerError)
+		res.Error = errmsg
+
+		l.Description = errmsg
+		go l.Save()
+
 		encoder.Encode(res)
 
 		return
 	}
 
-	/*
-		if err = apiUser.RegisterRequest(); err != nil {
-			err_msg = err.Error()
-			http.Error(w, err_msg, http.StatusInternalServerError)
-			res.Error = err_msg
-			encoder.Encode(res)
+	resultString, err := t.GoLatin(req.String)
+	if err != nil {
+		errmsg := err.Error()
+		http.Error(w, errmsg, http.StatusInternalServerError)
+		res.Error = errmsg
 
-			return
-		}
-	*/
+		l.Description = errmsg
+		go l.Save()
+
+		encoder.Encode(res)
+
+		return
+	}
+
+	l.Result = "SUCCESS"
+	l.Description = req.String
+	go l.Save()
 
 	res.String = resultString
 	encoder.Encode(res)
+}
+
+func (req TranslitRequest) Validate() error {
+	errmsg := "Validation errors:"
+	n_errs := 0
+
+	if req.String == "" {
+		errmsg = errmsg + " `string` required."
+		n_errs = n_errs + 1
+	}
+
+	if req.Table == "" {
+		errmsg = errmsg + " `table` required."
+		n_errs = n_errs + 1
+	}
+
+	if n_errs > 0 {
+		return errors.New(errmsg)
+	}
+	// else
+	return nil
 }
