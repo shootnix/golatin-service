@@ -6,5 +6,6 @@ create table api_users (
 	requests_allowed  integer  not null default 0,
 	requests_count    integer  not null default 0,
 	updated_at        timestamp not null default now(),
-	disabled          integer  not null default 0
+	disabled          integer  not null default 0,
+	type_id	          integer foreign key references api_user_types(id) on delete cascade
 );

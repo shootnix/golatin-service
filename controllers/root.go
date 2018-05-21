@@ -8,9 +8,8 @@ import (
 )
 
 type DecodeRequest struct {
-	String    string `json:"string"`
-	Algorithm string `json:"algorithm"`
-	ApiKey    string `json:"api_key"`
+	String string `json:"string"`
+	Table  string `json:"algorithm"`
 }
 
 type DecodeResponse struct {
@@ -46,8 +45,8 @@ func POSTTranslit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.ApiKey == "" {
-		err_msg = "Empty api_key"
+	if req.Table == "" {
+		err_msg = "Empty table"
 		http.Error(w, err_msg, http.StatusInternalServerError)
 		res.Error = err_msg
 		encoder.Encode(res)
@@ -55,35 +54,37 @@ func POSTTranslit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	apiUser, err := models.FindApiUser(req.ApiKey)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		res.Error = err.Error()
-		encoder.Encode(res)
+	/*
+		apiUser, err := models.FindApiUser(req.ApiKey)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			res.Error = err.Error()
+			encoder.Encode(res)
 
-		return
-	}
+			return
+		}
 
-	log.Println("User with api_key `" + apiUser.ApiKey + "` found")
-	if apiUser.CheckDisabled() {
-		err_msg := "User is disabled"
-		http.Error(w, err_msg, http.StatusInternalServerError)
-		res.Error = err_msg
-		encoder.Encode(res)
+		log.Println("User with api_key `" + apiUser.ApiKey + "` found")
+		if apiUser.CheckDisabled() {
+			err_msg := "User is disabled"
+			http.Error(w, err_msg, http.StatusInternalServerError)
+			res.Error = err_msg
+			encoder.Encode(res)
 
-		return
-	}
+			return
+		}
 
-	if apiUser.CheckAllowedRequests() == 0 {
-		err_msg = "Requests for this user isn't allowed"
-		http.Error(w, err_msg, http.StatusInternalServerError)
-		res.Error = err_msg
-		encoder.Encode(res)
+		if apiUser.CheckAllowedRequests() == 0 {
+			err_msg = "Requests for this user isn't allowed"
+			http.Error(w, err_msg, http.StatusInternalServerError)
+			res.Error = err_msg
+			encoder.Encode(res)
 
-		return
-	}
+			return
+		}
+	*/
 
-	transliter := models.NewTransliter(req.Algorithm)
+	transliter := models.NewTransliter(req.Table)
 	resultString, err := transliter.GoLatin(req.String)
 	if err != nil {
 		err_msg = err.Error()
@@ -94,14 +95,16 @@ func POSTTranslit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = apiUser.RegisterRequest(); err != nil {
-		err_msg = err.Error()
-		http.Error(w, err_msg, http.StatusInternalServerError)
-		res.Error = err_msg
-		encoder.Encode(res)
+	/*
+		if err = apiUser.RegisterRequest(); err != nil {
+			err_msg = err.Error()
+			http.Error(w, err_msg, http.StatusInternalServerError)
+			res.Error = err_msg
+			encoder.Encode(res)
 
-		return
-	}
+			return
+		}
+	*/
 
 	res.String = resultString
 	encoder.Encode(res)

@@ -20,11 +20,11 @@ func main() {
 
 	cfg := config.Load("config.toml")
 
-	db, err := OpenDatabaseConnection(cfg.Database)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	models.Pg = db
+	//db, err := OpenDatabaseConnection(cfg.Database)
+	//if err != nil {
+	//	log.Fatal(err.Error())
+	//}
+	//models.Pg = db
 
 	daemon := daemon.NewDaemon(cfg.Daemon)
 
@@ -32,6 +32,7 @@ func main() {
 	daemon.Run()
 }
 
+/*
 func OpenDatabaseConnection(cfg config.DatabaseConfig) (*sqlx.DB, error) {
 	db, err := sqlx.Open("postgres", cfg.ConnectionInfo)
 	if err != nil {
@@ -43,3 +44,4 @@ func OpenDatabaseConnection(cfg config.DatabaseConfig) (*sqlx.DB, error) {
 
 	return db, err
 }
+*/

@@ -14,6 +14,13 @@ type ApiUser struct {
 	RequestsCount   int64     `db:"requests_count"`
 	UpdatedAt       time.Time `db:"updated_at"`
 	Disabled        int64     `db:"disabled"`
+	TypeID          int64     `db:"type_id"`
+	Type            ApiUserType
+}
+
+type ApiUserType struct {
+	ID   int64  `db:"id"`
+	Name string `db:"string"`
 }
 
 func FindApiUser(apiKey string) (*ApiUser, error) {

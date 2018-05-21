@@ -1,12 +1,12 @@
 package models
 
 type Transliter struct {
-	Algorithm string
+	Table string
 }
 
-func NewTransliter(algorithm string) *Transliter {
+func NewTransliter(table string) *Transliter {
 	t := &Transliter{
-		Algorithm: algorithm,
+		Table: table,
 	}
 
 	return t
