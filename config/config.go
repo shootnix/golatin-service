@@ -7,9 +7,14 @@ import (
 
 type Config struct {
 	Daemon DaemonConfig
+	Logger LogServiceConfig
 }
 
 type DaemonConfig struct {
+	Address string `toml:"address"`
+}
+
+type LogServiceConfig struct {
 	Address string `toml:"address"`
 }
 

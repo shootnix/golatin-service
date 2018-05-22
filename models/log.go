@@ -13,6 +13,8 @@ type Log struct {
 	Description string `json:"desc"`
 }
 
+var LogServiceURL string
+
 func NewLog() *Log {
 	l := &Log{}
 
@@ -25,8 +27,7 @@ func (l *Log) Save() {
 		return
 	}
 
-	url := "http://localhost:8081/log"
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(j))
+	req, err := http.NewRequest("POST", LogServiceURL, bytes.NewBuffer(j))
 	if err != nil {
 		return
 	}

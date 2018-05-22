@@ -1,2 +1,4 @@
 [daemon]
 address = ":8080"
+[logger]
+address = "http://localhost:8081/log"
