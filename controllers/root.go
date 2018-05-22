@@ -33,8 +33,8 @@ func POSTTranslit(w http.ResponseWriter, r *http.Request) {
 	var res TranslitResponse
 
 	if err := decoder.Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
 		res.Error = err.Error()
+		w.WriteHeader(http.StatusInternalServerError)
 
 		l.Description = err.Error()
 		go l.Save()
@@ -46,7 +46,7 @@ func POSTTranslit(w http.ResponseWriter, r *http.Request) {
 
 	if err := req.Validate(); err != nil {
 		errmsg := err.Error()
-		http.Error(w, errmsg, http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
 		res.Error = errmsg
 
 		l.Description = errmsg
@@ -60,7 +60,7 @@ func POSTTranslit(w http.ResponseWriter, r *http.Request) {
 	t, err := models.NewTransliter(req.Table)
 	if err != nil {
 		errmsg := err.Error()
-		http.Error(w, errmsg, http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
 		res.Error = errmsg
 
 		l.Description = errmsg
@@ -74,7 +74,7 @@ func POSTTranslit(w http.ResponseWriter, r *http.Request) {
 	resultString, err := t.GoLatin(req.String)
 	if err != nil {
 		errmsg := err.Error()
-		http.Error(w, errmsg, http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
 		res.Error = errmsg
 
 		l.Description = errmsg
